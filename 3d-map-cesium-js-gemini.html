@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Map and API Integration</title>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #cesiumContainer {
+      width: 100%;
+      height: 100vh;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 8px;
+      z-index: 10;
+    }
+    button {
+      margin: 5px 0;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #007BFF;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div id="cesiumContainer"></div>
+  <div id="controls">
+    <button onclick="drawPolygon()">Draw Polygon</button>
+    <button onclick="analyzePlace()">Analyze Place</button>
+    <button onclick="getPlaceDetails()">Get Place Details</button>
+  </div>
+
+  <script>
+    // Initialize Cesium Viewer
+    const viewer = new Cesium.Viewer('cesiumContainer', {
+      terrainProvider: Cesium.createWorldTerrain(),
+    });
+
+    // Photorealistic Rendering
+    viewer.scene.globe.enableLighting = true; // Real-time lighting
+    viewer.scene.fog.enabled = true; // Atmospheric fog
+    viewer.scene.skyAtmosphere.show = true; // Sky effects
+
+    // Add Buildings Layer
+    viewer.scene.primitives.add(Cesium.createOsmBuildings());
+
+    // Center the camera on New York City
+    viewer.camera.setView({
+      destination: Cesium.Cartesian3.fromDegrees(-74.006, 40.7128, 2000), // NYC coordinates
+    });
+
+    // Draw a Polygon
+    function drawPolygon() {
+      viewer.entities.add({
+        name: "Polygon",
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArray([
+            -74.006, 40.7128,
+            -74.016, 40.7128,
+            -74.016, 40.7228,
+            -74.006, 40.7228,
+          ]),
+          material: Cesium.Color.RED.withAlpha(0.5),
+          height: 0,
+          extrudedHeight: 200,
+        },
+      });
+    }
+
+    // Gemini Models Integration
+    async function analyzePlace() {
+      const placeId = 'ChIJOwg_06VPwokRYv534QaPC8g'; // Example Place ID
+      const response = await fetch('https://api.gemini-models.com/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer YOUR_GEMINI_API_KEY`,
+        },
+        body: JSON.stringify({
+          placeId,
+          analysisType: 'recommendation',
+        }),
+      });
+      const data = await response.json();
+      console.log('Analysis Result:', data);
+      alert('Analysis Result: Check Console for Details');
+    }
+
+    // Google Places API Integration
+    async function getPlaceDetails() {
+      const placeId = 'ChIJOwg_06VPwokRYv534QaPC8g'; // Example Place ID
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=YOUR_API_KEY`
+      );
+      const data = await response.json();
+      console.log('Place Details:', data);
+      alert('Place Details: Check Console for Details');
+    }
+  </script>
+</body>
+</html>
